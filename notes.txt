@@ -1,0 +1,6 @@
+App should inluce
+
+- overview home page
+- add expense page
+- view expense page
+- settings
