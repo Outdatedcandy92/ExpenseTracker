@@ -11,11 +11,12 @@ body {
 .grid-container {
     display: grid;
     grid-template-areas: 
+        "box1 box3 box3"
         "box1 box2 box2"
-        "box1 box3 box4"
-        "box1 box3 box4";
+        "box1 box2 box2";
     grid-template-columns: 1fr 3fr 2fr;
     grid-template-rows: 0.5fr 2fr 2fr;
+
     grid-gap: 30px;
     padding: 10px;
     height: calc(100vh - 20px);
@@ -69,10 +70,9 @@ body {
     font-size: 30px;
 }
 
-
 .headbox {
     background-color: #00000000;
-    grid-area: box2;
+    grid-area: box3;
     display: flex;
     flex-direction: column;
     height: 10vh;
@@ -83,80 +83,24 @@ body {
     background: white;
     margin: -10px 0px;
 }
-.expense-form{
-   grid-area: box3;
-   margin-bottom: 20px;
-   display: flex;
-   flex-direction: column;
-   gap: 10px;
-}
-.form-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.form-group label {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.form-group input,
-.form-group select {
-    width: 300px;
-    height: 2.5em;
-    background-color: #3F3F3F;
-    border: none;
-    border-radius: 4px;
-    color: white;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    background-color: #3F3F3F;
-    color: yellow;
-    border: none;
-    margin: 0;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-/* input[type="number"] {
-    -moz-appearance: textfield;
-} */
-
-.submit-button {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.scan-bill {
-    grid-area: box4;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    height: 90%;
-    position: relative;
-}
-
-.scan-bill h1 {
-    font-size: 2em;
+.transaction{
+    grid-area: box2;
     margin-bottom: 20px;
-    position: absolute;
-    top: 0;
+}
+.transaction-table {
     width: 100%;
-    text-align: center;
+    border-collapse: collapse;
+    text-align: left;
 }
 
-.scan-bill p {
-    font-size: 1.2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+.transaction-table th,
+.transaction-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.transaction-table th {
+    background-color: #3F3F3F;
+    color: white;
 }
 
