@@ -149,3 +149,43 @@ body {
     color: white;
     cursor: pointer;
 }
+
+
+.bottom-nav {
+    grid-area: box4;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    background-color: #282828;
+    border-radius: 40px;
+    padding: 0;
+}
+
+.nav-item {
+    position: relative;
+    padding: 10px;
+    width: 50%;
+    height: 90%;
+    padding: 10px;
+}
+
+.nav-item p {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    margin: 0;
+    z-index: 2;
+}
+
+.nav-item-inside {
+    position: absolute;
+    top: 40px;
+    left: 20px;
+    height: 75%;
+    width: 85%;
+    background-color: #575757;
+    border-radius: 10px;
+    color: white;
+    padding: 10px;
+    z-index: 1;
+}
