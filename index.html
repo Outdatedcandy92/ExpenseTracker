@@ -18,19 +18,19 @@
             <h1>Welcome Joe!</h1>
 
             <div class="left-nav-cont">
-                <div class="left-nav-item">
+                <div class="left-nav-item" onclick="window.location.href='index.html'">
                     <i class="fas fa-home"></i>
                     <p>Home</p>
                 </div>
-                <div class="left-nav-item">
+                <div class="left-nav-item" onclick="window.location.href='Add_Expenses.html'">
                     <i class="fas fa-plus"></i>
                     <p>Add Expense</p>
                 </div>
-                <div class="left-nav-item">
+                <div class="left-nav-item" onclick="window.location.href='View_Expenses.html'">
                     <i class="fas fa-eye"></i>
                     <p>View Expense</p>
                 </div>
-                <div class="left-nav-item">
+                <div class="left-nav-item" onclick="window.location.href='Transactions.html'">
                     <i class="fas fa-exchange-alt"></i>
                     <p>Transactions</p>
                 </div>
@@ -79,7 +79,7 @@
                 <div class="sheet-item"><b>Type</b></div>
                 <div class="sheet-item"><b>Date</b></div>
                 <div class="sheet-item"><b>Amount</b></div>
-                <div class="sheet-item">Costco</div>
+                <!-- <div class="sheet-item">Costco</div>
                 <div class="sheet-item">Food</div>
                 <div class="sheet-item">9/11/22</div>
                 <div class="sheet-item">$130</div>
@@ -94,7 +94,7 @@
                 <div class="sheet-item">Costco</div>
                 <div class="sheet-item">Food</div>
                 <div class="sheet-item">9/11/22</div>
-                <div class="sheet-item">$130</div>
+                <div class="sheet-item">$130</div> -->
 
 
             </div>
@@ -128,7 +128,71 @@
     </div>
 
 
-    <script src="src/script.js"></script>
+    <script src="src/script.js" type="module"></script>
+    <script type="module">
+        import { openDatabase } from './src/db.js';
+
+async function DB_Read() {
+    try {
+        const db = await openDatabase();
+        const transaction = db.transaction(['expenses'], 'readonly');
+        const objectStore = transaction.objectStore('expenses');
+        const request = objectStore.getAll();
+
+        return new Promise((resolve, reject) => {
+            request.onsuccess = (event) => {
+                const expenses = event.target.result;
+                resolve(expenses);
+            };
+
+            request.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error;
+    }
+}
+
+function updateDOM(expenses) {
+    const sheet = document.querySelector('.sheet');
+
+    expenses.forEach(expense => {
+        const placeDiv = document.createElement('div');
+        placeDiv.className = 'sheet-item';
+        placeDiv.textContent = expense.place;
+
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'sheet-item';
+        typeDiv.textContent = expense.category;
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'sheet-item';
+        dateDiv.textContent = expense.date;
+
+        const amountDiv = document.createElement('div');
+        amountDiv.className = 'sheet-item';
+        amountDiv.textContent = `$${expense.amount}`;
+
+        sheet.appendChild(placeDiv);
+        sheet.appendChild(typeDiv);
+        sheet.appendChild(dateDiv);
+        sheet.appendChild(amountDiv);
+    });
+}
+
+async function initialize() {
+    try {
+        const expenses = await DB_Read();
+        updateDOM(expenses);
+    } catch (error) {
+        console.error('Error reading expenses from the database:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initialize);
+    </script>
 </body>
 
 </html>
