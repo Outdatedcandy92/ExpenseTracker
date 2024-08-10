@@ -1,0 +1,15 @@
+{
+  "name": "financetracker",
+  "version": "1.0.0",
+  "description": "Still in development",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.3.1"
+  }
+}
