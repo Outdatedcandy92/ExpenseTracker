@@ -10,7 +10,7 @@ body {
 
 .grid-container {
     display: grid;
-    grid-template-areas: 
+    grid-template-areas:
         "box1 box3 box3"
         "box1 box2 box2"
         "box1 box2 box2";
@@ -20,7 +20,7 @@ body {
     grid-gap: 30px;
     padding: 10px;
     height: calc(100vh - 20px);
-    
+
 }
 
 .box {
@@ -35,7 +35,7 @@ body {
 }
 
 
-.left-nav-cont{
+.left-nav-cont {
     margin-top: 60%;
     display: flex;
     flex-direction: column;
@@ -45,7 +45,7 @@ body {
 
 
 
-.left-nav-item{
+.left-nav-item {
     height: 70px;
     width: 90%;
     background-color: #3F3F3F;
@@ -66,7 +66,7 @@ body {
 }
 
 .left-nav-item i {
-    margin-left: 20px; 
+    margin-left: 20px;
     font-size: 30px;
 }
 
@@ -77,16 +77,19 @@ body {
     flex-direction: column;
     height: 10vh;
 }
+
 .white-line {
     border: 0;
     height: 1px;
     background: white;
     margin: -10px 0px;
 }
-.transaction{
+
+.transaction {
     grid-area: box2;
     margin-bottom: 20px;
 }
+
 .transaction-table {
     width: 100%;
     border-collapse: collapse;
@@ -103,4 +106,3 @@ body {
     background-color: #3F3F3F;
     color: white;
 }
-
