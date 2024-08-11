@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Home Page</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -110,8 +108,8 @@
 
             <div class="nav-item">
                 <p>Monthly Overview</p>
-                <div class="nav-item-inside">
-                    <canvas id="expensesChart"></canvas>
+                <div class="nav-item-inside" id="graphCont">
+                    <div id="graph"></div>
 
                 </div>
             </div>
@@ -138,20 +136,20 @@
 
     <script type="module">
         import { openDatabase } from './src/db.js';
-
+    
         async function DB_Read() {
             try {
                 const db = await openDatabase();
                 const transaction = db.transaction(['expenses'], 'readonly');
                 const objectStore = transaction.objectStore('expenses');
                 const request = objectStore.getAll();
-
+    
                 return new Promise((resolve, reject) => {
                     request.onsuccess = (event) => {
                         const expenses = event.target.result;
                         resolve(expenses);
                     };
-
+    
                     request.onerror = (event) => {
                         reject(event.target.error);
                     };
@@ -161,114 +159,116 @@
                 throw error;
             }
         }
-
+    
         function updateDOM(expenses) {
             const sheet = document.querySelector('.sheet');
-
+    
+            console.log(expenses);
+    
             expenses.forEach(expense => {
                 const placeDiv = document.createElement('div');
                 placeDiv.className = 'sheet-item';
                 placeDiv.textContent = expense.place;
-
+    
                 const typeDiv = document.createElement('div');
                 typeDiv.className = 'sheet-item';
                 typeDiv.textContent = expense.category;
-
+    
                 const dateDiv = document.createElement('div');
                 dateDiv.className = 'sheet-item';
                 dateDiv.textContent = expense.date;
-
+    
                 const amountDiv = document.createElement('div');
                 amountDiv.className = 'sheet-item';
                 amountDiv.textContent = `$${expense.amount}`;
-
+    
                 sheet.appendChild(placeDiv);
                 sheet.appendChild(typeDiv);
                 sheet.appendChild(dateDiv);
                 sheet.appendChild(amountDiv);
             });
         }
-
+    
         function createChart(expenses) {
-            const ctx = document.getElementById('expensesChart').getContext('2d');
-            const dates = expenses.map(expense => new Date(expense.date));
-            const amounts = expenses.map(expense => expense.amount);
+            const container = document.getElementById('graphCont');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+    
+            console.log(containerWidth, containerHeight);
+      
+            const margin = { top: 20, right: 30, bottom: 60, left: 40 },
+                  width = containerWidth - margin.left - margin.right,
+                  height = containerHeight - margin.top - margin.bottom;
+    
+            const svg = d3.select("#graph")
+                          .append("svg")
+                          .attr("width", width + margin.left + margin.right)
+                          .attr("height", height + margin.top + margin.bottom)
+                          .append("g")
+                          .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+     
+            const parseDate = d3.timeParse("%Y-%m-%d");
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: '',
-                        data: amounts,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        pointBackgroundColor: 'rgba(255, 99, 132, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#fff',
-                        fill: false,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            type: 'time',
-                            time: {
-                                unit: 'day'
-                            },
-                            ticks: {
-                                color: '#fff',
-                                stepSize: 1,
-                                maxRotation: 45,
-                                minRotation: 45,
-                                align: 'start'
-                            },
-                            grid: {
-                                color: '#fff',
-                                borderColor: '#fff',
-                                offset: false
-                            },
-                            border: {
-                                color: '#fff'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#fff',
-                                stepSize: 100
-                            },
-                            grid: {
-                                color: '#fff',
-                                borderColor: '#fff',
-                                offset: false
-                            },
-                            border: {
-                                color: '#fff'
-                            }
-                        }
-                    }
-                }
+            expenses.forEach(d => {
+                d.date = parseDate(d.date);
+                d.amount = +d.amount;
             });
-        }
+    
 
+            const x = d3.scaleTime()
+                        .domain(d3.extent(expenses, d => d.date))
+                        .range([0, width]);
+    
+            const y = d3.scaleLinear()
+                        .domain([0, d3.max(expenses, d => d.amount)])
+                        .range([height, 0]);
+    
+  
+            const formatTime = d3.timeFormat("%m/%d/%y");
+
+            svg.append("g")
+               .attr("transform", `translate(0,${height})`)
+               .call(d3.axisBottom(x).tickFormat(formatTime))
+               .selectAll("text")
+               .attr("transform", "rotate(50)")
+               .style("text-anchor", "start");
+    
+   
+            svg.append("g")
+               .call(d3.axisLeft(y));
+    
+
+            svg.append("path")
+               .datum(expenses)
+               .attr("fill", "none")
+               .attr("stroke", "steelblue")
+               .attr("stroke-width", 1.5)
+               .attr("d", d3.line()
+                            .x(d => x(d.date))
+                            .y(d => y(d.amount)));
+
+            svg.selectAll("dot")
+               .data(expenses)
+               .enter().append("circle")
+               .attr("cx", d => x(d.date))
+               .attr("cy", d => y(d.amount))
+               .attr("r", 3)
+               .attr("fill", "steelblue");
+        }
+    
         async function initialize() {
             try {
                 const expenses = await DB_Read();
+
+                expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
                 updateDOM(expenses);
                 createChart(expenses);
             } catch (error) {
                 console.error('Error reading expenses from the database:', error);
             }
         }
-
+    
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
