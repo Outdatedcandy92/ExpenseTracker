@@ -8,9 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Home Page</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
 </head>
+
 <body>
 
     <div class="grid-container">
@@ -197,31 +199,59 @@
                 data: {
                     labels: dates,
                     datasets: [{
-                        label: 'Expenses Over Time',
+                        label: '',
                         data: amounts,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#fff',
+                        fill: false,
                         tension: 0.1
                     }]
                 },
                 options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
                     scales: {
                         x: {
+                            beginAtZero: true,
                             type: 'time',
                             time: {
                                 unit: 'day'
                             },
-                            title: {
-                                display: true,
-                                text: 'Date'
+                            ticks: {
+                                color: '#fff',
+                                stepSize: 1,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                align: 'start'
+                            },
+                            grid: {
+                                color: '#fff',
+                                borderColor: '#fff',
+                                offset: false
+                            },
+                            border: {
+                                color: '#fff'
                             }
                         },
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Amount ($)'
+                            ticks: {
+                                color: '#fff',
+                                stepSize: 100
+                            },
+                            grid: {
+                                color: '#fff',
+                                borderColor: '#fff',
+                                offset: false
+                            },
+                            border: {
+                                color: '#fff'
                             }
                         }
                     }
