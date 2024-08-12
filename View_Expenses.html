@@ -60,11 +60,52 @@
         </div>
 
         <div class="box recent-transactions">
-            RECENT
+            <h2>Recent Transactions</h2>
+            <div style="display: flex; justify-content: space-between;">
+                <table id="transactions-table">
+                </table>
+            </div>
         </div>
 
     </div>
-    <script src="src/script.js"></script>
+    <script src="src/script.js" type="module"></script>
+    <script type="module">
+        import { DB_Read } from './src/script.js';
+
+        async function initialize() {
+            try {
+                const expenses = await DB_Read();
+                console.log('Expenses from the database:', expenses);
+
+                expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                console.log('Sorted expenses:', expenses);
+
+                printLatestExpenses(expenses);
+            } catch (error) {
+                console.error('Error reading expenses from the database:', error);
+            }
+        }
+
+        function printLatestExpenses(expenses) {
+            const latestExpenses = expenses.slice(-4).reverse();
+            const table = document.getElementById('transactions-table');
+
+            latestExpenses.forEach(expense => {
+                const row = document.createElement('tr');
+                const placeCell = document.createElement('td');
+                const amountCell = document.createElement('td');
+
+                placeCell.textContent = expense.place;
+                amountCell.textContent = `- $${expense.amount}`;
+
+                row.appendChild(placeCell);
+                row.appendChild(amountCell);
+                table.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
 </body>
 
 </html>

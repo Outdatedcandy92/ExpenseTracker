@@ -58,37 +58,29 @@
                     </tr>
                 </thead>
                 <tbody class="transactions-body">
-                    
+
                 </tbody>
             </table>
         </div>
 
     </div>
     <script src="src/script.js"></script>
-    
+
     <script type="module">
-        import { openDatabase } from './src/db.js';
+        import { DB_Read } from './src/script.js';
 
-        async function DB_Read() {
+        async function initialize() {
             try {
-                const db = await openDatabase();
-                const transaction = db.transaction(['expenses'], 'readonly');
-                const objectStore = transaction.objectStore('expenses');
-                const request = objectStore.getAll();
+                const expenses = await DB_Read();
+                console.log('Expenses from the database:', expenses);
 
-                return new Promise((resolve, reject) => {
-                    request.onsuccess = (event) => {
-                        const expenses = event.target.result;
-                        resolve(expenses);
-                    };
+                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                console.log('Sorted expenses:', expenses);
 
-                    request.onerror = (event) => {
-                        reject(event.target.error);
-                    };
-                });
+
+                updateDOM(expenses);
             } catch (error) {
-                console.error('Error initializing database:', error);
-                throw error;
+                console.error('Error reading expenses from the database:', error);
             }
         }
 
@@ -122,14 +114,7 @@
             });
         }
 
-        async function initialize() {
-            try {
-                const expenses = await DB_Read();
-                updateDOM(expenses);
-            } catch (error) {
-                console.error('Error reading expenses from the database:', error);
-            }
-        }
+
 
         document.addEventListener('DOMContentLoaded', initialize);
     </script>

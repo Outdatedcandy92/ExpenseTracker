@@ -123,6 +123,7 @@
 
                 request.onsuccess = () => {
                     console.log('Expense added to the database:', formObject);
+                    alert('Expense added successfully!');
                 };
 
                 request.onerror = (event) => {

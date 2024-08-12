@@ -114,3 +114,24 @@ body {
     grid-area: box6;
     margin-bottom: 20px;
 }
+.recent-transactions h2 {
+    text-align: left;
+    margin-top: 10px;
+}
+.recent-transactions .table-container {
+    display: flex;
+    justify-content: space-between;
+}
+.recent-transactions table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.recent-transactions td {
+    padding: 8px;
+}
+.recent-transactions td:first-child {
+    text-align: left;
+}
+.recent-transactions td:last-child {
+    text-align: right;
+}

@@ -1,35 +1,27 @@
-import { openDatabase, countDatabaseEntries } from './db.js';
+import { openDatabase } from './db.js';
+    
+async function DB_Read() {
+    try {
+        const db = await openDatabase();
+        const transaction = db.transaction(['expenses'], 'readonly');
+        const objectStore = transaction.objectStore('expenses');
+        const request = objectStore.getAll();
 
-// document.addEventListener('DOMContentLoaded', async () => {
-//     try {
-//         await openDatabase();
-//         const count = await countDatabaseEntries();
-//         console.log(`Total number of entries: ${count}`);
-//     } catch (error) {
-//         console.error('Error initializing database:', error);
-//     }
+        return new Promise((resolve, reject) => {
+            request.onsuccess = (event) => {
+                const expenses = event.target.result;
+                resolve(expenses);
+            };
 
-//     const form = document.getElementById('expense-form');
-//     form.addEventListener('submit', async (event) => {
-//         event.preventDefault();
+            request.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error;
+    }
+}
 
-//         const formData = new FormData(form);
-//         const formObject = {};
 
-//         formData.forEach((value, key) => {
-//             formObject[key] = value;
-//         });
-
-//         const transaction = db.transaction(['expenses'], 'readwrite');
-//         const objectStore = transaction.objectStore('expenses');
-//         const request = objectStore.add(formObject);
-
-//         request.onsuccess = () => {
-//             console.log('Expense added to the database:', formObject);
-//         };
-
-//         request.onerror = (event) => {
-//             console.error('Error adding expense to the database:', event.target.error);
-//         };
-//     });
-// });
+export { DB_Read };
