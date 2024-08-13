@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="src/View_Expenses.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Add Expenses</title>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -47,11 +50,11 @@
         </div>
 
 
-        <div class="box weekly">
+        <div class="box weekly" id="weeklyChart">
             WEKKLY
         </div>
 
-        <div class="box budget">
+        <div class="box budget" id="budget">
             BUDGE
         </div>
 
@@ -77,10 +80,13 @@
                 const expenses = await DB_Read();
                 console.log('Expenses from the database:', expenses);
 
-                expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
                 console.log('Sorted expenses:', expenses);
 
                 printLatestExpenses(expenses);
+                renderWeeklyChart(expenses);
+                renderPieChart(expenses);
             } catch (error) {
                 console.error('Error reading expenses from the database:', error);
             }
@@ -104,8 +110,137 @@
             });
         }
 
+        function renderWeeklyChart(expenses) {
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const today = new Date();
+            const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+
+            const weeklyData = daysOfWeek.map((day, index) => {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + index);
+                const expenseForDay = expenses.find(expense => new Date(expense.date).toDateString() === date.toDateString());
+                return {
+                    day: day,
+                    amount: expenseForDay ? expenseForDay.amount : 0
+                };
+            });
+
+            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+            const width = document.getElementById('weeklyChart').clientWidth - margin.left - margin.right;
+            const height = document.getElementById('weeklyChart').clientHeight - margin.top - margin.bottom;
+
+            const svg = d3.select('#weeklyChart')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .domain(weeklyData.map(d => d.day))
+                .range([0, width])
+                .padding(0.1);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(weeklyData, d => d.amount)])
+                .nice()
+                .range([height, 0]);
+
+            svg.append('g')
+                .selectAll('rect')
+                .data(weeklyData)
+                .enter()
+                .append('rect')
+                .attr('x', d => x(d.day))
+                .attr('y', d => y(d.amount))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(d.amount))
+                .attr('fill', 'steelblue');
+
+            svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append('g')
+                .attr('class', 'y-axis')
+                .call(d3.axisLeft(y));
+        }
+
+        function renderPieChart(expenses) {
+    console.log('Rendering pie chart with expenses:', expenses);
+
+    const categoryTotals = expenses.reduce((acc, expense) => {
+        if (!acc[expense.category]) {
+            acc[expense.category] = 0;
+        }
+        acc[expense.category] += parseFloat(expense.amount); 
+        return acc;
+    }, {});
+
+    console.log('Category totals:', categoryTotals);
+
+    const data = Object.entries(categoryTotals).map(([category, amount]) => ({ category, amount }));
+
+    console.log('Data for pie chart:', data);
+
+    const totalAmount = data.reduce((sum, d) => sum + d.amount, 0);
+
+    console.log('Total amount:', totalAmount);
+
+    const width = document.getElementById('budget').clientWidth;
+    const height = document.getElementById('budget').clientHeight;
+    const radius = Math.min(width, height) / 2;
+
+    console.log('Pie chart dimensions - width:', width, 'height:', height, 'radius:', radius);
+
+    const svg = d3.select('#budget')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .append('g')
+        .attr('transform', `translate(${width / 2},${height / 2})`);
+
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    const pie = d3.pie()
+        .value(d => d.amount);
+
+    const arc = d3.arc()
+        .outerRadius(radius - 10)
+        .innerRadius(0);
+
+    const labelArc = d3.arc()
+        .outerRadius(radius - 40)
+        .innerRadius(radius - 40);
+
+    const g = svg.selectAll('.arc')
+        .data(pie(data))
+        .enter().append('g')
+        .attr('class', 'arc');
+
+    g.append('path')
+        .attr('d', arc)
+        .style('fill', d => color(d.data.category));
+
+    g.append('text')
+        .attr('transform', d => `translate(${labelArc.centroid(d)})`)
+        .attr('dy', '.35em')
+        .text(d => d.data.category);
+
+    svg.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '.35em')
+        .attr('class', 'total-amount')
+        .text(`Total: $${totalAmount}`);
+
+    console.log('Pie chart rendered successfully.');
+}
+
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
+
+
 </body>
 
 </html>
