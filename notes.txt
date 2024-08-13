@@ -4,3 +4,6 @@ App should inluce
 - add expense page
 - view expense page
 - settings
+
+
+add a income thing

@@ -9,7 +9,9 @@
     <title>Add Expenses</title>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"
+        integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -80,7 +82,7 @@
                 const expenses = await DB_Read();
                 console.log('Expenses from the database:', expenses);
 
-        
+
                 expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
                 console.log('Sorted expenses:', expenses);
 
@@ -168,74 +170,94 @@
         }
 
         function renderPieChart(expenses) {
-    console.log('Rendering pie chart with expenses:', expenses);
+            console.log('Rendering pie chart with expenses:', expenses);
 
-    const categoryTotals = expenses.reduce((acc, expense) => {
-        if (!acc[expense.category]) {
-            acc[expense.category] = 0;
+            const categoryTotals = expenses.reduce((acc, expense) => {
+                if (!acc[expense.category]) {
+                    acc[expense.category] = 0;
+                }
+                acc[expense.category] += parseFloat(expense.amount); 
+                return acc;
+            }, {});
+
+            console.log('Category totals:', categoryTotals);
+
+            const data = Object.entries(categoryTotals).map(([category, amount]) => ({ category, amount }));
+
+            console.log('Data for pie chart:', data);
+
+            const totalAmount = data.reduce((sum, d) => sum + d.amount, 0);
+
+            console.log('Total amount:', totalAmount);
+
+            const width = document.getElementById('budget').clientWidth;
+            const height = document.getElementById('budget').clientHeight;
+            const radius = Math.min(width, height) / 2;
+
+            console.log('Pie chart dimensions - width:', width, 'height:', height, 'radius:', radius);
+
+            const svg = d3.select('#budget')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('g')
+                .attr('transform', `translate(${width / 2},${height / 2})`);
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            const pie = d3.pie()
+                .value(d => d.amount);
+
+            const arc = d3.arc()
+                .outerRadius(radius - 10)
+                .innerRadius(0);
+
+            const g = svg.selectAll('.arc')
+                .data(pie(data))
+                .enter().append('g')
+                .attr('class', 'arc');
+
+            g.append('path')
+                .attr('d', arc)
+                .style('fill', d => color(d.data.category));
+
+            const legend = svg.selectAll('.legend')
+                .data(data)
+                .enter().append('g')
+                .attr('class', 'legend')
+                .attr('transform', (d, i) => `translate(${-width / 2 + 20}, ${i * 20 - height / 2 + 20})`);
+
+            legend.append('rect')
+                .attr('x', 0)
+                .attr('width', 18)
+                .attr('height', 18)
+                .style('fill', d => color(d.category));
+
+            legend.append('text')
+                .attr('x', 24)
+                .attr('y', 9)
+                .attr('dy', '.35em')
+                .style('text-anchor', 'start')
+                .text(d => `${d.category}: $${d.amount.toFixed(2)}`);
+
+
+            const legendHeight = data.length * 20;
+            svg.append('text')
+                .attr('text-anchor', 'start')
+                .attr('x', -width / 2 + 20)
+                .attr('y', -height / 2 + legendHeight + 40)
+                .attr('class', 'total-amount')
+                .text(`Total: $${totalAmount.toFixed(2)}`);
+
+
+            svg.attr('transform', `translate(${width - radius - 20},${height / 2})`);
+
+            console.log('Pie chart rendered successfully.');
         }
-        acc[expense.category] += parseFloat(expense.amount); 
-        return acc;
-    }, {});
 
-    console.log('Category totals:', categoryTotals);
 
-    const data = Object.entries(categoryTotals).map(([category, amount]) => ({ category, amount }));
 
-    console.log('Data for pie chart:', data);
 
-    const totalAmount = data.reduce((sum, d) => sum + d.amount, 0);
-
-    console.log('Total amount:', totalAmount);
-
-    const width = document.getElementById('budget').clientWidth;
-    const height = document.getElementById('budget').clientHeight;
-    const radius = Math.min(width, height) / 2;
-
-    console.log('Pie chart dimensions - width:', width, 'height:', height, 'radius:', radius);
-
-    const svg = d3.select('#budget')
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .append('g')
-        .attr('transform', `translate(${width / 2},${height / 2})`);
-
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    const pie = d3.pie()
-        .value(d => d.amount);
-
-    const arc = d3.arc()
-        .outerRadius(radius - 10)
-        .innerRadius(0);
-
-    const labelArc = d3.arc()
-        .outerRadius(radius - 40)
-        .innerRadius(radius - 40);
-
-    const g = svg.selectAll('.arc')
-        .data(pie(data))
-        .enter().append('g')
-        .attr('class', 'arc');
-
-    g.append('path')
-        .attr('d', arc)
-        .style('fill', d => color(d.data.category));
-
-    g.append('text')
-        .attr('transform', d => `translate(${labelArc.centroid(d)})`)
-        .attr('dy', '.35em')
-        .text(d => d.data.category);
-
-    svg.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '.35em')
-        .attr('class', 'total-amount')
-        .text(`Total: $${totalAmount}`);
-
-    console.log('Pie chart rendered successfully.');
-}
 
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
