@@ -31,7 +31,7 @@
                     <i class="fas fa-plus"></i>
                     <p>Add Expense</p>
                 </div>
-                <div class="left-nav-item" onclick="window.location.href='View_Expenses.html'">
+                <div class="left-nav-item" onclick="window.location.href='View_Expenses.html'" style="background-color: #717171;">
                     <i class="fas fa-eye"></i>
                     <p>View Expense</p>
                 </div>
@@ -57,11 +57,10 @@
         </div>
 
         <div class="box budget" id="budget">
-            BUDGE
         </div>
 
-        <div class="box spending-overview">
-            OVERVE
+        <div class="box spending-overview" id="spendingOverview">
+
         </div>
 
         <div class="box recent-transactions">
@@ -76,23 +75,6 @@
     <script src="src/script.js" type="module"></script>
     <script type="module">
         import { DB_Read } from './src/script.js';
-
-        async function initialize() {
-            try {
-                const expenses = await DB_Read();
-                console.log('Expenses from the database:', expenses);
-
-
-                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-                console.log('Sorted expenses:', expenses);
-
-                printLatestExpenses(expenses);
-                renderWeeklyChart(expenses);
-                renderPieChart(expenses);
-            } catch (error) {
-                console.error('Error reading expenses from the database:', error);
-            }
-        }
 
         function printLatestExpenses(expenses) {
             const latestExpenses = expenses.slice(-4).reverse();
@@ -113,35 +95,37 @@
         }
 
         function renderWeeklyChart(expenses) {
-            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const today = new Date();
-            const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date();
+    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
 
-            const weeklyData = daysOfWeek.map((day, index) => {
-                const date = new Date(startOfWeek);
-                date.setDate(startOfWeek.getDate() + index);
-                const expenseForDay = expenses.find(expense => new Date(expense.date).toDateString() === date.toDateString());
-                return {
-                    day: day,
-                    amount: expenseForDay ? expenseForDay.amount : 0
-                };
-            });
+    const weeklyData = daysOfWeek.map((day, index) => {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + index);
+        const expenseForDay = expenses.find(expense => new Date(expense.date).toDateString() === date.toDateString());
+        return {
+            day: day,
+            amount: expenseForDay ? expenseForDay.amount : 0
+        };
+    });
 
-            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-            const width = document.getElementById('weeklyChart').clientWidth - margin.left - margin.right;
-            const height = document.getElementById('weeklyChart').clientHeight - margin.top - margin.bottom;
+    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+    const containerWidth = document.getElementById('weeklyChart').clientWidth;
+    const containerHeight = document.getElementById('weeklyChart').clientHeight;
+    const width = containerWidth - margin.left - margin.right - 50;
+    const height = containerHeight - margin.top - margin.bottom;
 
-            const svg = d3.select('#weeklyChart')
-                .append('svg')
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
-                .append('g')
-                .attr('transform', `translate(${margin.left},${margin.top})`);
+    const svg = d3.select('#weeklyChart')
+        .append('svg')
+        .attr('width', containerWidth-50) 
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
 
-            const x = d3.scaleBand()
-                .domain(weeklyData.map(d => d.day))
-                .range([0, width])
-                .padding(0.1);
+    const x = d3.scaleBand()
+        .domain(weeklyData.map(d => d.day))
+        .range([0, width])
+        .padding(0.1);
 
             const y = d3.scaleLinear()
                 .domain([0, d3.max(weeklyData, d => d.amount)])
@@ -176,7 +160,7 @@
                 if (!acc[expense.category]) {
                     acc[expense.category] = 0;
                 }
-                acc[expense.category] += parseFloat(expense.amount); 
+                acc[expense.category] += parseFloat(expense.amount);
                 return acc;
             }, {});
 
@@ -201,7 +185,7 @@
                 .attr('width', width)
                 .attr('height', height)
                 .append('g')
-                .attr('transform', `translate(${width / 2},${height / 2})`);
+                .attr('transform', `translate(${width - radius - 20},${height / 2})`);
 
             const color = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -221,11 +205,12 @@
                 .attr('d', arc)
                 .style('fill', d => color(d.data.category));
 
+
             const legend = svg.selectAll('.legend')
                 .data(data)
                 .enter().append('g')
                 .attr('class', 'legend')
-                .attr('transform', (d, i) => `translate(${-width / 2 + 20}, ${i * 20 - height / 2 + 20})`);
+                .attr('transform', (d, i) => `translate(${-width + radius + 40}, ${i * 20 - height / 2 + 20})`);
 
             legend.append('rect')
                 .attr('x', 0)
@@ -238,25 +223,115 @@
                 .attr('y', 9)
                 .attr('dy', '.35em')
                 .style('text-anchor', 'start')
+                .style('fill', 'white')
                 .text(d => `${d.category}: $${d.amount.toFixed(2)}`);
 
 
             const legendHeight = data.length * 20;
             svg.append('text')
                 .attr('text-anchor', 'start')
-                .attr('x', -width / 2 + 20)
+                .attr('x', -width + radius + 40)
                 .attr('y', -height / 2 + legendHeight + 40)
                 .attr('class', 'total-amount')
-                .text(`Total: $${totalAmount.toFixed(2)}`);
-
-
-            svg.attr('transform', `translate(${width - radius - 20},${height / 2})`);
+                .style('fill', 'white')
+                .text(`Total: $${totalAmount.toFixed(2)}`)
 
             console.log('Pie chart rendered successfully.');
         }
 
 
+        function renderLineGraph(expenses) {
 
+    const currentYear = new Date().getFullYear();
+    const yearlyExpenses = expenses.filter(expense => new Date(expense.date).getFullYear() === currentYear);
+
+
+    const parseTime = d3.timeParse("%Y-%m-%d");
+
+
+    const margin = { top: 20, right: 30, bottom: 30, left: 50 },
+        containerWidth = document.getElementById('spendingOverview').clientWidth,
+        containerHeight = document.getElementById('spendingOverview').clientHeight,
+        width = Math.min(containerWidth, 800) - margin.left - margin.right, 
+        height = containerHeight - margin.top - margin.bottom-50;
+
+    const svg = d3.select("#spendingOverview")
+        .append("svg")
+        .attr("width", containerWidth-margin.left-margin.right)
+        .attr("height", containerHeight-50)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    yearlyExpenses.forEach(d => {
+        d.date = parseTime(d.date);
+        d.amount = +d.amount;
+    });
+
+
+    const monthlyExpensesMap = d3.group(yearlyExpenses, d => new Date(d.date).getMonth());
+    const monthlyExpenses = Array.from(monthlyExpensesMap, ([month, values]) => ({
+        month: month,
+        amount: d3.sum(values, d => d.amount)
+    }));
+
+    const x = d3.scaleLinear().domain([0, 11]).range([0, width]);
+    const y = d3.scaleLinear().range([height, 0]);
+
+ 
+    const valueline = d3.line()
+        .x(d => x(d.month))
+        .y(d => y(d.amount));
+
+    y.domain([0, d3.max(monthlyExpenses, d => d.amount)]);
+
+  
+    svg.append("path")
+        .data([monthlyExpenses])
+        .attr("class", "line")
+        .attr("d", valueline)
+        .style("fill", "none")
+        .style("stroke", "white")
+        .style("stroke-width", 2);
+
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .attr("class", "axis")
+        .call(d3.axisBottom(x).ticks(12).tickFormat(d => d3.timeFormat("%B")(new Date(0, d))));
+
+    svg.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y));
+
+
+    svg.selectAll("dot")
+        .data(monthlyExpenses)
+        .enter().append("circle")
+        .attr("r", 4)
+        .attr("cx", d => x(d.month))
+        .attr("cy", d => y(d.amount))
+        .style("fill", "white");
+}
+
+
+
+        async function initialize() {
+            try {
+                const expenses = await DB_Read();
+                console.log('Expenses from the database:', expenses);
+
+
+                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                console.log('Sorted expenses:', expenses);
+
+                printLatestExpenses(expenses);
+                renderWeeklyChart(expenses);
+                renderPieChart(expenses);
+                renderLineGraph(expenses);
+            } catch (error) {
+                console.error('Error reading expenses from the database:', error);
+            }
+        }
 
 
         document.addEventListener('DOMContentLoaded', initialize);
