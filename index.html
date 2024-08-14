@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Home Page</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"
+        integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -20,7 +22,8 @@
             <h1>Welcome Joe!</h1>
 
             <div class="left-nav-cont">
-                <div class="left-nav-item" onclick="window.location.href='index.html'" style="background-color: #717171;">
+                <div class="left-nav-item" onclick="window.location.href='index.html'"
+                    style="background-color: #717171;">
                     <i class="fas fa-home"></i>
                     <p>Home</p>
                 </div>
@@ -115,7 +118,7 @@
             </div>
             <div class="nav-item">
                 <p>Top Expenses</p>
-                <div class="nav-item-inside">
+                <div class="nav-item-inside" id="barCont">
 
                 </div>
             </div>
@@ -136,104 +139,168 @@
 
     <script type="module">
         import { DB_Read } from './src/script.js';
-    
+
         function updateDOM(expenses) {
             const sheet = document.querySelector('.sheet');
-    
+
             console.log(expenses);
-    
-            expenses.forEach(expense => {
+
+
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const limitedExpenses = expenses.slice(0, 7);
+
+            limitedExpenses.forEach(expense => {
                 const placeDiv = document.createElement('div');
                 placeDiv.className = 'sheet-item';
                 placeDiv.textContent = expense.place;
-    
+
                 const typeDiv = document.createElement('div');
                 typeDiv.className = 'sheet-item';
                 typeDiv.textContent = expense.category;
-    
+
                 const dateDiv = document.createElement('div');
                 dateDiv.className = 'sheet-item';
                 dateDiv.textContent = expense.date;
-    
+
                 const amountDiv = document.createElement('div');
                 amountDiv.className = 'sheet-item';
                 amountDiv.textContent = `$${expense.amount}`;
-    
+
                 sheet.appendChild(placeDiv);
                 sheet.appendChild(typeDiv);
                 sheet.appendChild(dateDiv);
                 sheet.appendChild(amountDiv);
             });
         }
-    
+
         function createChart(expenses) {
             const container = document.getElementById('graphCont');
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
-    
+
             console.log(containerWidth, containerHeight);
-      
+
             const margin = { top: 20, right: 30, bottom: 60, left: 40 },
-                  width = containerWidth - margin.left - margin.right,
-                  height = containerHeight - margin.top - margin.bottom;
-    
+                width = containerWidth - margin.left - margin.right,
+                height = containerHeight - margin.top - margin.bottom;
+
             const svg = d3.select("#graph")
-                          .append("svg")
-                          .attr("width", width + margin.left + margin.right)
-                          .attr("height", height + margin.top + margin.bottom)
-                          .append("g")
-                          .attr("transform", `translate(${margin.left},${margin.top})`);
-    
-     
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+
             const parseDate = d3.timeParse("%Y-%m-%d");
 
             expenses.forEach(d => {
                 d.date = parseDate(d.date);
                 d.amount = +d.amount;
             });
-    
+
 
             const x = d3.scaleTime()
-                        .domain(d3.extent(expenses, d => d.date))
-                        .range([0, width]);
-    
+                .domain(d3.extent(expenses, d => d.date))
+                .range([0, width]);
+
             const y = d3.scaleLinear()
-                        .domain([0, d3.max(expenses, d => d.amount)])
-                        .range([height, 0]);
-    
-  
+                .domain([0, d3.max(expenses, d => d.amount)])
+                .range([height, 0]);
+
+
             const formatTime = d3.timeFormat("%m/%d/%y");
 
             svg.append("g")
-               .attr("transform", `translate(0,${height})`)
-               .call(d3.axisBottom(x).tickFormat(formatTime))
-               .selectAll("text")
-               .attr("transform", "rotate(50)")
-               .style("text-anchor", "start");
-    
-   
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickFormat(formatTime))
+                .selectAll("text")
+                .attr("transform", "rotate(50)")
+                .style("text-anchor", "start");
+
+
             svg.append("g")
-               .call(d3.axisLeft(y));
-    
+                .call(d3.axisLeft(y));
+
 
             svg.append("path")
-               .datum(expenses)
-               .attr("fill", "none")
-               .attr("stroke", "steelblue")
-               .attr("stroke-width", 1.5)
-               .attr("d", d3.line()
-                            .x(d => x(d.date))
-                            .y(d => y(d.amount)));
+                .datum(expenses)
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-width", 1.5)
+                .attr("d", d3.line()
+                    .x(d => x(d.date))
+                    .y(d => y(d.amount)));
 
             svg.selectAll("dot")
-               .data(expenses)
-               .enter().append("circle")
-               .attr("cx", d => x(d.date))
-               .attr("cy", d => y(d.amount))
-               .attr("r", 3)
-               .attr("fill", "steelblue");
+                .data(expenses)
+                .enter().append("circle")
+                .attr("cx", d => x(d.date))
+                .attr("cy", d => y(d.amount))
+                .attr("r", 3)
+                .attr("fill", "steelblue");
         }
-    
+
+
+        function RenderBarGraph(expenses) {
+            const categoryTotals = expenses.reduce((acc, expense) => {
+                if (!acc[expense.category]) {
+                    acc[expense.category] = 0;
+                }
+                acc[expense.category] += expense.amount;
+                return acc;
+            }, {});
+
+            console.log(categoryTotals);
+
+            const data = Object.entries(categoryTotals).map(([category, amount]) => ({ category, amount }));
+
+            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+            const containerWidth = document.getElementById('barCont').clientWidth;
+            const containerHeight = document.getElementById('barCont').clientHeight;
+            const width = containerWidth - margin.left - margin.right;
+            const height = containerHeight - margin.top - margin.bottom;
+
+            const svg = d3.select('#barCont')
+                .append('svg')
+                .attr('width', containerWidth)
+                .attr('height', containerHeight)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .domain(data.map(d => d.category))
+                .range([0, width])
+                .padding(0.1);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.amount)])
+                .nice()
+                .range([height, 0]);
+
+            svg.append('g')
+                .selectAll('.bar')
+                .data(data)
+                .enter().append('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d.category))
+                .attr('y', d => y(d.amount))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(d.amount))
+                .attr('fill', 'steelblue');
+
+            svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append('g')
+                .attr('class', 'y-axis')
+                .call(d3.axisLeft(y));
+        }
+
+
         async function initialize() {
             try {
                 const expenses = await DB_Read();
@@ -241,11 +308,12 @@
                 expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
                 updateDOM(expenses);
                 createChart(expenses);
+                RenderBarGraph(expenses);
             } catch (error) {
                 console.error('Error reading expenses from the database:', error);
             }
         }
-    
+
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
